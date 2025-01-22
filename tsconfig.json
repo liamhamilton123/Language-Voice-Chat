@@ -30,7 +30,7 @@
     "src/components/**/*.ts",
     "src/components/**/*.tsx",
     "lib/utils.ts"
-  ],
+, "tailwind.config.js"  ],
   "references": [
     { "path": "./tsconfig.node.json" }
   ]

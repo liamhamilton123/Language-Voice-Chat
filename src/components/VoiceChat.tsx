@@ -12,6 +12,7 @@ import {
 } from './ui/alert-dialog';
 import { Alert, AlertDescription } from './ui/alert';
 import { Button } from './ui/button';
+import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription }  from './ui/card';
 import { Slider } from './ui/slider';
 import { Switch } from './ui/switch';
 import { Input } from './ui/input';
@@ -49,7 +50,7 @@ const DEFAULT_VOICE_SETTINGS: VoiceSettings = {
   rate: 1,
   volume: 1,
   autoPlay: true,
-  language: 'en-US'
+  language: 'es-ES'
 };
 
 const VoiceChat = () => {
@@ -267,7 +268,7 @@ const VoiceChat = () => {
               onClick={toggleSpeaking}
               disabled={!speaking}
             >
-              {speaking ? <VolumeX size={20} /> : <Volume2 size={20} />}
+              {speaking ? <Volume2 size={20} /> : <VolumeX size={20} />}
             </Button>
             <Button
               variant="outline"
@@ -288,74 +289,67 @@ const VoiceChat = () => {
         )}
 
         {/* Messages container */}
-        <div className="space-y-4 mb-4 h-96 overflow-y-auto">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`p-4 rounded-lg ${
-                message.role === 'user' 
-                  ? 'bg-blue-100 ml-auto max-w-[80%]' 
-                  : 'bg-gray-100 mr-auto max-w-[80%]'
-              }`}
-            >
-              <div className="flex justify-between items-start gap-2">
-                <div className="flex-1 break-words">{message.content}</div>
-                <time className="text-xs text-gray-500 whitespace-nowrap">
-                  {message.timestamp.toLocaleTimeString()}
-                </time>
-              </div>
-            </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input controls */}
-        <div className="space-y-4">
-          {/* Voice input display */}
-          {isListening && (
-            <div className="flex items-center gap-4">
-              <div className="flex-1 p-3 border rounded-lg bg-gray-50">
-                {transcript || 'Listening...'}
-              </div>
-            </div>
-          )}
-
-          {/* Text and voice input controls */}
-          <div className="flex items-center gap-4">
-            <Button
-              variant={isListening ? "destructive" : "default"}
-              size="icon"
-              onClick={isListening ? stopListening : startListening}
-              disabled={speaking}
-            >
-              {isListening ? <Mic size={24} /> : <MicOff size={24} />}
-            </Button>
-
-            <div className="flex-1 relative">
-              <Input
-                ref={inputRef}
-                value={textInput}
-                onChange={(e) => setTextInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type a message..."
-                className="pr-24"
-                disabled={isLoading}
-              />
-            </div>
-
-            <Button
-              onClick={() => sendMessage(textInput || transcript)}
-              disabled={(!textInput && !transcript) || speaking || isLoading}
-              size="icon"
-            >
-              {isLoading ? (
-                <Loader2 className="h-6 w-6 animate-spin" />
-              ) : (
-                <Send size={24} />
-              )}
-            </Button>
+        <Card className="mb-4">
+  <CardHeader>
+    <CardTitle>Chat History</CardTitle>
+  </CardHeader>
+  <CardContent className="p-0">
+    <div className="h-96 overflow-y-auto px-6 space-y-4">
+      {messages.map((message) => (
+        <div
+          key={message.id}
+          className={`p-4 rounded-lg ${
+            message.role === 'user' 
+              ? 'bg-blue-100 ml-auto max-w-[80%]' 
+              : 'bg-gray-100 mr-auto max-w-[80%]'
+          }`}
+        >
+          <div className="flex justify-between items-start gap-2">
+            <div className="flex-1 break-words">{message.content}</div>
+            <time className="text-xs text-gray-500 whitespace-nowrap">
+              {message.timestamp.toLocaleTimeString()}
+            </time>
           </div>
         </div>
+      ))}
+      <div ref={messagesEndRef} />
+    </div>
+  </CardContent>
+</Card>
+
+        <div className="flex items-center gap-4">
+  <div className="flex-1 flex items-center gap-4">
+    <Button
+      variant={isListening ? "destructive" : "default"}
+      size="icon"
+      onClick={isListening ? stopListening : startListening}
+      disabled={speaking}
+    >
+      {isListening ? <Mic size={24} /> : <MicOff size={24} />}
+    </Button>
+
+    <Input
+      ref={inputRef}
+      value={textInput}
+      onChange={(e) => setTextInput(e.target.value)}
+      onKeyPress={handleKeyPress}
+      placeholder="Type a message..."
+      disabled={isLoading}
+    />
+
+    <Button
+      onClick={() => sendMessage(textInput || transcript)}
+      disabled={(!textInput && !transcript) || speaking || isLoading}
+      size="icon"
+    >
+      {isLoading ? (
+        <Loader2 className="h-6 w-6 animate-spin" />
+      ) : (
+        <Send size={24} />
+      )}
+    </Button>
+  </div>
+</div>
 
         {/* Settings dialog */}
         <AlertDialog open={showSettings} onOpenChange={setShowSettings}>
