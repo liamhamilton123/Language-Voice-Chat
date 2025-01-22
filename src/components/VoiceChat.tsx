@@ -257,7 +257,7 @@ const VoiceChat = () => {
 
   return (
     <div className="p-4 max-w-3xl mx-auto">
-      <div className="rounded-lg shadow-lg p-8 bg-var-grey-100">
+      <div className="rounded-lg shadow-lg p-8 bg-var-grey-200">
         {/* Header with controls */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl text-var-grey-700 font-semibold">Voice & Text Chat</h2>

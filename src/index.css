@@ -6,7 +6,7 @@
   :root {
     --background: 0 0% 99%;
     --foreground: 240 10% 3.9%;
-    --card: 220 13% 91%;
+    --card: 220 14% 96%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
@@ -38,9 +38,9 @@
   }
  
   .dark {
-    --background: 240 10% 10%;
+    --background: 221 25% 5%;
     --foreground: 0 0% 98%;
-    --card: 215 28% 17%;
+    --card: 221 28% 11%;
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
@@ -59,7 +59,7 @@
     --ring: 240 4.9% 83.9%;
     --var-white: 0 0% 0%;
     --var-black: 0 0% 100%;
-    --var-grey-100: 221 39% 11%;
+    --var-grey-100: 221 28% 11%;
     --var-grey-200: 215 28% 17%;
     --var-grey-300: 217 19% 27%;
     --var-grey-400: 215 14% 34%;
