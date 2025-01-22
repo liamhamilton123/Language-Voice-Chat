@@ -257,7 +257,7 @@ const VoiceChat = () => {
 
   return (
     <div className="p-4 max-w-3xl mx-auto">
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="rounded-lg shadow-lg p-6">
         {/* Header with controls */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold">Voice & Text Chat</h2>
@@ -300,13 +300,13 @@ const VoiceChat = () => {
           key={message.id}
           className={`p-4 rounded-lg ${
             message.role === 'user' 
-              ? 'bg-blue-100 ml-auto max-w-[80%]' 
-              : 'bg-gray-100 mr-auto max-w-[80%]'
+              ? 'message-user ml-auto max-w-[80%]' 
+              : 'message-assistant mr-auto max-w-[80%]'
           }`}
         >
           <div className="flex justify-between items-start gap-2">
             <div className="flex-1 break-words">{message.content}</div>
-            <time className="text-xs text-gray-500 whitespace-nowrap">
+            <time className="text-xs text-muted-foreground whitespace-nowrap">
               {message.timestamp.toLocaleTimeString()}
             </time>
           </div>

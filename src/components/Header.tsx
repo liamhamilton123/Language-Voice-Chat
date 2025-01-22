@@ -5,7 +5,7 @@ import { MessageSquare, Mic} from 'lucide-react';
 const Header = () => {
 
   return (
-    <header className="w-40 shadow-md">
+    <header className="w-full shadow-md">
       {/* Top Bar */}
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
@@ -24,13 +24,6 @@ const Header = () => {
               className="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
             >
               Home
-            </Link>
-            <Link 
-              to="/chat" 
-              className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
-            >
-              <MessageSquare className="h-4 w-4" />
-              <span>Chat</span>
             </Link>
             {/* Add more navigation items here */}
           </nav>
