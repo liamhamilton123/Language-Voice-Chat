@@ -1,19 +1,20 @@
 // src/components/Header.tsx
 import { Link } from 'react-router-dom';
 import { MessageSquare, Mic} from 'lucide-react';
+import { ThemeToggle } from "./theme-toggle"
 
 const Header = () => {
 
   return (
-    <header className="w-full shadow-md">
+    <header className="bg-primary w-full shadow-md">
       {/* Top Bar */}
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo and Brand */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2">
-              <Mic className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900">VoiceAI</span>
+              <Mic className="h-8 w-8 text-white" />
+              <span className="text-xl font-bold text-white">VoiceAI</span>
             </Link>
           </div>
 
@@ -27,6 +28,7 @@ const Header = () => {
             </Link>
             {/* Add more navigation items here */}
           </nav>
+          <ThemeToggle />
         </div>
       </div>
 

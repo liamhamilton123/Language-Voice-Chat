@@ -2,10 +2,13 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import VoiceChatPage from './pages/VoiceChatPage';
 import Header from './components/Header';
+import { ThemeProvider } from "./components/theme-provider.tsx"
+
 
 function App() {
   return (
     <Router>
+          <ThemeProvider defaultTheme="system" storageKey="app-theme">
       <div className="min-h-screen min-w-screen flex flex-col">
         <Header />
         <main className="flex-grow">
@@ -15,6 +18,7 @@ function App() {
           </Routes>
         </main>
       </div>
+      </ThemeProvider>
     </Router>
   );
 }
