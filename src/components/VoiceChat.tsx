@@ -363,7 +363,7 @@ const VoiceChat = () => {
 
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Voice</label>
+                <label className="text-var-black text-sm font-medium">Voice</label>
                 <select
                   className="w-full p-2 border rounded"
                   value={selectedVoice?.name}
@@ -381,7 +381,7 @@ const VoiceChat = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Pitch</label>
+                <label className="text-var-black text-sm font-medium">Pitch</label>
                 <Slider
                   value={[voiceSettings.pitch]}
                   min={0.5}
@@ -394,7 +394,7 @@ const VoiceChat = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Rate</label>
+                <label className="text-var-black text-sm font-medium">Rate</label>
                 <Slider
                   value={[voiceSettings.rate]}
                   min={0.5}
@@ -407,7 +407,7 @@ const VoiceChat = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Volume</label>
+                <label className="text-var-black text-sm font-medium">Volume</label>
                 <Slider
                   value={[voiceSettings.volume]}
                   min={0}
@@ -420,7 +420,7 @@ const VoiceChat = () => {
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Auto-play responses</label>
+                <label className="text-var-black text-sm font-medium">Auto-play responses</label>
                 <Switch
                   checked={voiceSettings.autoPlay}
                   onCheckedChange={(checked) =>
@@ -430,7 +430,7 @@ const VoiceChat = () => {
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Language</label>
+                <label className="text-var-black text-sm font-medium">Language</label>
                 <select
                   className="w-48 p-2 border rounded"
                   value={voiceSettings.language}

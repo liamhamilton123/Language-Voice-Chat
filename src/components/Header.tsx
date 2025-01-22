@@ -6,15 +6,15 @@ import { ThemeToggle } from "./theme/theme-toggle"
 const Header = () => {
 
   return (
-    <header className="bg-primary w-full shadow-md">
+    <header className="bg-muted w-full shadow-md">
       {/* Top Bar */}
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className=" text-primary flex justify-between items-center h-16">
           {/* Logo and Brand */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2">
-              <Mic className="h-8 w-8 text-white" />
-              <span className="text-xl font-bold text-white">Platica.ai</span>
+              <Mic className="h-8 w-8" />
+              <span className="text-xl font-bold">Platica.ai</span>
             </Link>
           </div>
 
