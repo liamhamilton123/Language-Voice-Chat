@@ -34,11 +34,13 @@ export function AIVoiceInput({
     let intervalId: NodeJS.Timeout;
 
     if (submitted) {
+      // Call parent's onStart when user clicks => "start"
       onStart?.();
       intervalId = setInterval(() => {
         setTime((t) => t + 1);
       }, 1000);
     } else {
+      // Call parent's onStop with total recorded time
       onStop?.(time);
       setTime(0);
     }

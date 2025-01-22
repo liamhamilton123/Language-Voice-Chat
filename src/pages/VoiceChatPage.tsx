@@ -1,6 +1,6 @@
 // src/pages/VoiceChatPage.tsx
 import React from 'react';
-import VoiceChat from '../components/VoiceChat';
+import VoiceChat from '../components/voicechat/VoiceChat';
 
 const VoiceChatPage: React.FC = () => {
   return (
