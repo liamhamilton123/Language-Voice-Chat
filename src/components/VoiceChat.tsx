@@ -1,75 +1,137 @@
-import { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Send } from 'lucide-react';
-import type { SpeechRecognition, SpeechRecognitionEvent, SpeechRecognitionErrorEvent } from '../types/speech-recognition';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Mic, MicOff, Send, Settings, Volume2, VolumeX, Loader2, AlertTriangle } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from './ui/alert-dialog';
+import { Alert, AlertDescription } from './ui/alert';
+import { Button } from './ui/button';
+import { Slider } from './ui/slider';
+import { Switch } from './ui/switch';
+import { Input } from './ui/input';
+import type {
+  SpeechRecognition,
+  SpeechRecognitionEvent,
+  SpeechRecognitionErrorEvent
+} from '../types/speech-recognition';
 
-type Message = {
+// Declare global window interfaces
+declare global {
+  interface Window {
+    SpeechRecognition: new () => SpeechRecognition;
+    webkitSpeechRecognition: new () => SpeechRecognition;
+  }
+}
+
+interface Message {
+  id: string;
   role: 'user' | 'assistant';
   content: string;
+  timestamp: Date;
+}
+
+interface VoiceSettings {
+  pitch: number;
+  rate: number;
+  volume: number;
+  autoPlay: boolean;
+  language: string;
+}
+
+const DEFAULT_VOICE_SETTINGS: VoiceSettings = {
+  pitch: 1,
+  rate: 1,
+  volume: 1,
+  autoPlay: true,
+  language: 'en-US'
 };
 
 const VoiceChat = () => {
+  // State declarations
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [speaking, setSpeaking] = useState(false);
-  
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [voiceSettings, setVoiceSettings] = useState<VoiceSettings>(DEFAULT_VOICE_SETTINGS);
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
+  const [textInput, setTextInput] = useState('');
+
+  // Refs
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Test OpenAI API key on mount
-  useEffect(() => {
-    const testApiKey = async () => {
-      try {
-        console.log('Testing OpenAI API key...');
-        console.log('API Key available:', !!import.meta.env.VITE_OPENAI_API_KEY);
-        
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
-          },
-          body: JSON.stringify({
-            model: 'gpt-3.5-turbo',
-            messages: [{ role: 'user', content: 'Hello' }],
-            temperature: 0.7,
-            max_tokens: 10
-          })
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error?.message || 'API request failed');
-        }
-
-        console.log('OpenAI API key is working correctly!');
-      } catch (error) {
-        console.error('OpenAI API key test failed:', error instanceof Error ? error.message : 'Unknown error');
-      }
-    };
-
-    testApiKey();
+  // Scroll to bottom of messages
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
-  // Initialize speech recognition
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
+
+  // Initialize available voices
+  useEffect(() => {
+    const loadVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      setAvailableVoices(voices);
+      const defaultVoice = voices.find(voice => voice.lang === voiceSettings.language) || voices[0];
+      setSelectedVoice(defaultVoice);
+    };
+
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    loadVoices();
+
+    return () => {
+      window.speechSynthesis.onvoiceschanged = null;
+    };
+  }, [voiceSettings.language]);
+
+  // Initialize speech recognition with error handling
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
       
       if (SpeechRecognitionAPI) {
         recognitionRef.current = new SpeechRecognitionAPI();
-        recognitionRef.current.continuous = true;
-        recognitionRef.current.interimResults = true;
+        const recognition = recognitionRef.current;
+        
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = voiceSettings.language;
 
-        recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
+        recognition.onresult = (event: SpeechRecognitionEvent) => {
           const current = event.resultIndex;
-          const transcriptText = event.results[current][0].transcript;
-          setTranscript(transcriptText);
+          const result = event.results[current];
+          if (result && result[0]) {
+            const transcriptText = result[0].transcript;
+            setTranscript(transcriptText);
+          }
         };
 
-        recognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {
+        recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
           console.error('Speech recognition error:', event.error);
+          setError(`Speech recognition error: ${event.error}`);
           setIsListening(false);
         };
+
+        recognition.onend = () => {
+          if (isListening && recognition) {
+            recognition.start();
+          }
+        };
+      } else {
+        setError('Speech recognition is not supported in this browser');
       }
     }
 
@@ -78,27 +140,66 @@ const VoiceChat = () => {
         recognitionRef.current.stop();
       }
     };
-  }, []);
+  }, [isListening, voiceSettings.language]);
 
-  const startListening = () => {
+  const startListening = useCallback(() => {
+    setError(null);
     if (recognitionRef.current) {
       setIsListening(true);
       recognitionRef.current.start();
     }
-  };
+  }, []);
 
-  const stopListening = () => {
+  const stopListening = useCallback(() => {
     if (recognitionRef.current) {
       setIsListening(false);
       recognitionRef.current.stop();
     }
-  };
+  }, []);
 
-  const sendMessage = async () => {
-    if (!transcript.trim()) return;
+  const toggleSpeaking = useCallback(() => {
+    if (speaking) {
+      window.speechSynthesis.cancel();
+      setSpeaking(false);
+    }
+  }, [speaking]);
 
-    const userMessage: Message = { role: 'user', content: transcript };
+  const speakMessage = useCallback((text: string) => {
+    if (!selectedVoice) return;
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.voice = selectedVoice;
+    utterance.pitch = voiceSettings.pitch;
+    utterance.rate = voiceSettings.rate;
+    utterance.volume = voiceSettings.volume;
+    
+    setSpeaking(true);
+    window.speechSynthesis.speak(utterance);
+    
+    utterance.onend = () => {
+      setSpeaking(false);
+    };
+
+    utterance.onerror = (event) => {
+      console.error('Speech synthesis error:', event.error);
+      setSpeaking(false);
+      setError('Failed to speak message');
+    };
+  }, [selectedVoice, voiceSettings]);
+
+  const sendMessage = async (content: string) => {
+    if (!content.trim()) return;
+
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content: content,
+      timestamp: new Date()
+    };
+
     setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+    setError(null);
 
     try {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -125,70 +226,257 @@ const VoiceChat = () => {
 
       const data = await response.json();
       const assistantMessage: Message = {
+        id: crypto.randomUUID(),
         role: 'assistant',
-        content: data.choices[0].message.content
+        content: data.choices[0].message.content,
+        timestamp: new Date()
       };
       
       setMessages(prev => [...prev, assistantMessage]);
 
-      // Speak the response
-      const utterance = new SpeechSynthesisUtterance(assistantMessage.content);
-      setSpeaking(true);
-      window.speechSynthesis.speak(utterance);
-      
-      utterance.onend = () => {
-        setSpeaking(false);
-      };
+      if (voiceSettings.autoPlay) {
+        speakMessage(assistantMessage.content);
+      }
     } catch (error) {
-      console.error('Error sending message to LLM:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('Error sending message:', error);
+      setError(error instanceof Error ? error.message : 'Failed to send message');
+    } finally {
+      setIsLoading(false);
+      setTranscript('');
+      setTextInput('');
     }
+  };
 
-    setTranscript('');
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey && !isLoading) {
+      e.preventDefault();
+      sendMessage(textInput);
+    }
   };
 
   return (
-    <div className="p-4 max-w-2xl mx-auto">
-      <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="p-4 max-w-3xl mx-auto">
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        {/* Header with controls */}
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold">Voice & Text Chat</h2>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleSpeaking}
+              disabled={!speaking}
+            >
+              {speaking ? <VolumeX size={20} /> : <Volume2 size={20} />}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowSettings(true)}
+            >
+              <Settings size={20} />
+            </Button>
+          </div>
+        </div>
+
+        {/* Error display */}
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Messages container */}
         <div className="space-y-4 mb-4 h-96 overflow-y-auto">
-          {messages.map((message, index) => (
+          {messages.map((message) => (
             <div
-              key={index}
-              className={`p-3 rounded-lg ${
+              key={message.id}
+              className={`p-4 rounded-lg ${
                 message.role === 'user' 
                   ? 'bg-blue-100 ml-auto max-w-[80%]' 
                   : 'bg-gray-100 mr-auto max-w-[80%]'
               }`}
             >
-              {message.content}
+              <div className="flex justify-between items-start gap-2">
+                <div className="flex-1 break-words">{message.content}</div>
+                <time className="text-xs text-gray-500 whitespace-nowrap">
+                  {message.timestamp.toLocaleTimeString()}
+                </time>
+              </div>
             </div>
           ))}
+          <div ref={messagesEndRef} />
         </div>
 
-        <div className="flex items-center gap-4">
-          <button
-            onClick={isListening ? stopListening : startListening}
-            disabled={speaking}
-            className={`p-2 rounded-full ${
-              isListening 
-                ? 'bg-red-500 hover:bg-red-600' 
-                : 'bg-blue-500 hover:bg-blue-600'
-            } text-white`}
-          >
-            {isListening ? <MicOff size={24} /> : <Mic size={24} />}
-          </button>
+        {/* Input controls */}
+        <div className="space-y-4">
+          {/* Voice input display */}
+          {isListening && (
+            <div className="flex items-center gap-4">
+              <div className="flex-1 p-3 border rounded-lg bg-gray-50">
+                {transcript || 'Listening...'}
+              </div>
+            </div>
+          )}
 
-          <div className="flex-1 p-3 border rounded-lg">
-            {transcript || 'Start speaking...'}
+          {/* Text and voice input controls */}
+          <div className="flex items-center gap-4">
+            <Button
+              variant={isListening ? "destructive" : "default"}
+              size="icon"
+              onClick={isListening ? stopListening : startListening}
+              disabled={speaking}
+            >
+              {isListening ? <Mic size={24} /> : <MicOff size={24} />}
+            </Button>
+
+            <div className="flex-1 relative">
+              <Input
+                ref={inputRef}
+                value={textInput}
+                onChange={(e) => setTextInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Type a message..."
+                className="pr-24"
+                disabled={isLoading}
+              />
+            </div>
+
+            <Button
+              onClick={() => sendMessage(textInput || transcript)}
+              disabled={(!textInput && !transcript) || speaking || isLoading}
+              size="icon"
+            >
+              {isLoading ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                <Send size={24} />
+              )}
+            </Button>
           </div>
-
-          <button
-            onClick={sendMessage}
-            disabled={!transcript || speaking}
-            className="p-2 rounded-full bg-green-500 hover:bg-green-600 text-white disabled:opacity-50"
-          >
-            <Send size={24} />
-          </button>
         </div>
+
+        {/* Settings dialog */}
+        <AlertDialog open={showSettings} onOpenChange={setShowSettings}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Voice Settings</AlertDialogTitle>
+              <AlertDialogDescription>
+                Customize the voice chat experience
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Voice</label>
+                <select
+                  className="w-full p-2 border rounded"
+                  value={selectedVoice?.name}
+                  onChange={(e) => {
+                    const voice = availableVoices.find(v => v.name === e.target.value);
+                    if (voice) setSelectedVoice(voice);
+                  }}
+                >
+                  {availableVoices.map((voice) => (
+                    <option key={voice.name} value={voice.name}>
+                      {voice.name} ({voice.lang})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Pitch</label>
+                <Slider
+                  value={[voiceSettings.pitch]}
+                  min={0.5}
+                  max={2}
+                  step={0.1}
+                  onValueChange={([value]) => 
+                    setVoiceSettings(prev => ({ ...prev, pitch: value }))
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Rate</label>
+                <Slider
+                  value={[voiceSettings.rate]}
+                  min={0.5}
+                  max={2}
+                  step={0.1}
+                  onValueChange={([value]) => 
+                    setVoiceSettings(prev => ({ ...prev, rate: value }))
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Volume</label>
+                <Slider
+                  value={[voiceSettings.volume]}
+                  min={0}
+                  max={1}
+                  step={0.1}
+                  onValueChange={([value]) => 
+                    setVoiceSettings(prev => ({ ...prev, volume: value }))
+                  }
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">Auto-play responses</label>
+                <Switch
+                  checked={voiceSettings.autoPlay}
+                  onCheckedChange={(checked) =>
+                    setVoiceSettings(prev => ({ ...prev, autoPlay: checked }))
+                  }
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">Language</label>
+                <select
+                  className="w-48 p-2 border rounded"
+                  value={voiceSettings.language}
+                  onChange={(e) =>
+                    setVoiceSettings(prev => ({ ...prev, language: e.target.value }))
+                  }
+                >
+                  <option value="en-US">English (US)</option>
+                  <option value="en-GB">English (UK)</option>
+                  <option value="es-ES">Spanish</option>
+                  <option value="fr-FR">French</option>
+                  <option value="de-DE">German</option>
+                  <option value="it-IT">Italian</option>
+                  <option value="ja-JP">Japanese</option>
+                  <option value="ko-KR">Korean</option>
+                  <option value="zh-CN">Chinese (Simplified)</option>
+                  <option value="zh-TW">Chinese (Traditional)</option>
+                  <option value="ar-SA">Arabic</option>
+                  <option value="hi-IN">Hindi</option>
+                  <option value="pt-BR">Portuguese (Brazil)</option>
+                  <option value="ru-RU">Russian</option>
+                </select>
+              </div>
+            </div>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => {
+                setShowSettings(false);
+                // Restart speech recognition with new language if it's active
+                if (isListening && recognitionRef.current) {
+                  stopListening();
+                  startListening();
+                }
+              }}>
+                Save Changes
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

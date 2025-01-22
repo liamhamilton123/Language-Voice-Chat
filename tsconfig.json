@@ -18,10 +18,19 @@
     "composite": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@/lib/*": ["./src/lib/*"]
     }
   },
-  "include": ["src", "types.d.ts"],
+  "include": [
+    "src",
+    "types.d.ts",
+    "src/lib/**/*.ts",
+    "src/lib/**/*.tsx",
+    "src/components/**/*.ts",
+    "src/components/**/*.tsx",
+    "lib/utils.ts"
+  ],
   "references": [
     { "path": "./tsconfig.node.json" }
   ]
