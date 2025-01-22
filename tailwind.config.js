@@ -38,11 +38,38 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        varwhite: {
-          DEFAULT: "hsl(var(--varwhite))",
+        "var-white": {
+          DEFAULT: "hsl(var(--var-white))",
         },
-        varblack: {
-          DEFAULT: "hsl(var(--varblack))",
+        "var-black": {
+          DEFAULT: "hsl(var(--var-black))",
+        },
+        "var-grey-100": {
+          DEFAULT: "hsl(var(--var-grey-100))",
+        },
+        "var-grey-200": {
+          DEFAULT: "hsl(var(--var-grey-200))",
+        },
+        "var-grey-300": {
+          DEFAULT: "hsl(var(--var-grey-300))",
+        },
+        "var-grey-400": {
+          DEFAULT: "hsl(var(--var-grey-400))",
+        },
+        "var-grey-500": {
+          DEFAULT: "hsl(var(--var-grey-500))",
+        },
+        "var-grey-600": {
+          DEFAULT: "hsl(var(--var-grey-600))",
+        },
+        "var-grey-700": {
+          DEFAULT: "hsl(var(--var-grey-700))",
+        },
+        "var-grey-800": {
+          DEFAULT: "hsl(var(--var-grey-800))",
+        },
+        "var-grey-900": {
+          DEFAULT: "hsl(var(--var-grey-900))",
         },
       },
     },

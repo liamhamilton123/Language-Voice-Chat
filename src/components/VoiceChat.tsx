@@ -257,11 +257,11 @@ const VoiceChat = () => {
 
   return (
     <div className="p-4 max-w-3xl mx-auto">
-      <div className="rounded-lg shadow-lg p-6">
+      <div className="rounded-lg shadow-lg p-8 bg-var-grey-100">
         {/* Header with controls */}
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold">Voice & Text Chat</h2>
-          <div className="flex gap-2">
+          <h2 className="text-2xl text-var-grey-700 font-semibold">Voice & Text Chat</h2>
+          <div className="flex gap-2 text-var-black ">
             <Button
               variant="outline"
               size="icon"
@@ -294,7 +294,7 @@ const VoiceChat = () => {
     <CardTitle>Chat History</CardTitle>
   </CardHeader>
   <CardContent className="p-0">
-    <div className="h-96 overflow-y-auto px-6 space-y-4">
+    <div className="h-96 overflow-y-auto py-2 px-6 space-y-4">
       {messages.map((message) => (
         <div
           key={message.id}
@@ -317,8 +317,8 @@ const VoiceChat = () => {
   </CardContent>
 </Card>
 
-        <div className="flex items-center gap-4">
-  <div className="flex-1 flex items-center gap-4">
+        <div className="mt-8 flex items-center gap-4">
+  <div className="flex-1 flex items-center text-var-black gap-4">
     <Button
       variant={isListening ? "destructive" : "default"}
       size="icon"

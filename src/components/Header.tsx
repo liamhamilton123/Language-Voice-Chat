@@ -1,7 +1,7 @@
 // src/components/Header.tsx
 import { Link } from 'react-router-dom';
 import { MessageSquare, Mic} from 'lucide-react';
-import { ThemeToggle } from "./theme-toggle"
+import { ThemeToggle } from "./theme/theme-toggle"
 
 const Header = () => {
 
@@ -14,11 +14,11 @@ const Header = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2">
               <Mic className="h-8 w-8 text-white" />
-              <span className="text-xl font-bold text-white">VoiceAI</span>
+              <span className="text-xl font-bold text-white">Platica.ai</span>
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation 
           <nav className="items-center space-x-8">
             <Link 
               to="/" 
@@ -26,8 +26,8 @@ const Header = () => {
             >
               Home
             </Link>
-            {/* Add more navigation items here */}
-          </nav>
+             Add more navigation items here
+          </nav> */}
           <ThemeToggle />
         </div>
       </div>

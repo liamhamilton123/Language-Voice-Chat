@@ -4,9 +4,9 @@
  
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 0 0% 99%;
     --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
+    --card: 220 13% 91%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
@@ -24,14 +24,23 @@
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
     --radius: 0.5rem;
-    --varwhite: #fff;
-    --varblack: #000;
+    --var-white: 0 0% 100;
+    --var-black: 0 0% 0%;
+    --var-grey-100: 220 14% 96%;
+    --var-grey-200: 220 13% 91%;
+    --var-grey-300: 216 12% 84%;
+    --var-grey-400: 218 11% 65%;
+    --var-grey-500: 220 9% 46%;
+    --var-grey-600: 215 14% 34%;
+    --var-grey-700: 217 19% 27%;
+    --var-grey-800: 215 28% 17%;
+    --var-grey-900: 221 39% 11%;
   }
  
   .dark {
-    --background: 240 10% 3.9%;
+    --background: 240 10% 10%;
     --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
+    --card: 215 28% 17%;
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
@@ -48,7 +57,16 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
-    --varwhite: 000;
-    --varblack: #fff;
+    --var-white: 0 0% 0%;
+    --var-black: 0 0% 100%;
+    --var-grey-100: 221 39% 11%;
+    --var-grey-200: 215 28% 17%;
+    --var-grey-300: 217 19% 27%;
+    --var-grey-400: 215 14% 34%;
+    --var-grey-500: 220 9% 46%;
+    --var-grey-600: 218 11% 65%;
+    --var-grey-700: 216 12% 84%;
+    --var-grey-800: 220 13% 91%;
+    --var-grey-900: 220 14% 96%;
   }
 }
