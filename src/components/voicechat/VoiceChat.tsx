@@ -1,31 +1,21 @@
-// VoiceChat.tsx
-
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  Send,
-  Settings,
-  Volume2,
-  VolumeX,
-  Loader2,
-  AlertTriangle
-} from 'lucide-react';
+import { Card } from '../ui/card';
 import { Alert, AlertDescription } from '../ui/alert';
-import { Button } from '../ui/button';
-import { Card, CardHeader, CardContent, CardTitle } from '../ui/card';
-import { Input } from '../ui/input';
+import { AlertTriangle } from 'lucide-react';
 import VoiceSettingsDialog from './VoiceSettingsDialog';
 import { AIVoiceInput } from '/workspaces/Language-Voice-Chat/src/components/ui/ai-voice-input.tsx';
+import ChatHeader from './ChatHeader';
+import ChatHistory from './ChatHistory';
+import ChatInput from './ChatInput';
 
-// Types
 import type {
   SpeechRecognition,
   SpeechRecognitionEvent,
   SpeechRecognitionErrorEvent
 } from '/workspaces/Language-Voice-Chat/src/types/speech-recognition.d.ts';
 
-// Declare global window interfaces
 declare global {
   interface Window {
     SpeechRecognition: new () => SpeechRecognition;
@@ -57,32 +47,21 @@ export interface VoiceSettings {
 }
 
 const VoiceChat = () => {
-  // ----------------------------------------------------------------
-  //                          State
-  // ----------------------------------------------------------------
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [speaking, setSpeaking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
   const [showSettings, setShowSettings] = useState(false);
   const [voiceSettings, setVoiceSettings] = useState<VoiceSettings>(DEFAULT_VOICE_SETTINGS);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
   const [textInput, setTextInput] = useState('');
 
-  // ----------------------------------------------------------------
-  //                          Refs
-  // ----------------------------------------------------------------
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  // ----------------------------------------------------------------
-  //            Scrolling to the bottom of messages
-  // ----------------------------------------------------------------
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
@@ -91,9 +70,6 @@ const VoiceChat = () => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
-  // ----------------------------------------------------------------
-  //               Initialize available voices
-  // ----------------------------------------------------------------
   useEffect(() => {
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
@@ -110,9 +86,6 @@ const VoiceChat = () => {
     };
   }, [voiceSettings.language]);
 
-  // ----------------------------------------------------------------
-  //         Initialize speech recognition with error handling
-  // ----------------------------------------------------------------
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -148,7 +121,6 @@ const VoiceChat = () => {
       }
     }
 
-    // Cleanup: stop recognition if component unmounts
     return () => {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
@@ -156,9 +128,6 @@ const VoiceChat = () => {
     };
   }, [isListening, voiceSettings.language]);
 
-  // ----------------------------------------------------------------
-  //                     Start / Stop Listening
-  // ----------------------------------------------------------------
   const startListening = useCallback(() => {
     if (isListening) return;
     setError(null);
@@ -176,9 +145,6 @@ const VoiceChat = () => {
     }
   }, [isListening]);
 
-  // ----------------------------------------------------------------
-  //                   Speech Synthesis Handlers
-  // ----------------------------------------------------------------
   const toggleSpeaking = useCallback(() => {
     if (speaking) {
       window.speechSynthesis.cancel();
@@ -212,9 +178,6 @@ const VoiceChat = () => {
     [selectedVoice, voiceSettings]
   );
 
-  // ----------------------------------------------------------------
-  //                        Send Message
-  // ----------------------------------------------------------------
   const sendMessage = async (content: string) => {
     if (!content.trim()) return;
 
@@ -237,7 +200,7 @@ const VoiceChat = () => {
           Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
+          model: 'gpt-4o-mini',
           messages: [...messages, userMessage].map(({ role, content }) => ({
             role,
             content
@@ -282,32 +245,14 @@ const VoiceChat = () => {
     }
   };
 
-  // ----------------------------------------------------------------
-  //                        Render
-  // ----------------------------------------------------------------
   return (
     <div className="p-4 max-w-3xl mx-auto">
       <div className="rounded-lg shadow-lg p-8 bg-muted">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl text-var-grey-900 font-semibold">Voice &amp; Text Chat</h2>
-          <div className="flex gap-2 text-var-black">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={toggleSpeaking}
-              disabled={!speaking}
-            >
-              {speaking ? <Volume2 size={20} /> : <VolumeX size={20} />}
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setShowSettings(true)}
-            >
-              <Settings size={20} />
-            </Button>
-          </div>
-        </div>
+        <ChatHeader 
+          speaking={speaking}
+          toggleSpeaking={toggleSpeaking}
+          setShowSettings={setShowSettings}
+        />
 
         {error && (
           <Alert variant="destructive" className="mb-4">
@@ -316,63 +261,31 @@ const VoiceChat = () => {
           </Alert>
         )}
 
-        <Card className="mb-4">
-          <CardHeader>
-            <CardTitle>Chat History</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="h-96 overflow-y-auto py-2 px-6 space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`p-4 rounded-lg ${
-                    message.role === 'user'
-                      ? 'bg-blue-100 message-user ml-auto max-w-[80%]'
-                      : 'bg-var-grey-200 message-assistant mr-auto max-w-[80%]'
-                  }`}
-                >
-                  <div className="flex justify-between items-start gap-2">
-                    <div className="flex-1 break-words">{message.content}</div>
-                    <time className="text-xs text-muted-foreground whitespace-nowrap">
-                      {message.timestamp.toLocaleTimeString()}
-                    </time>
-                  </div>
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-          </CardContent>
+        <Card>
+          <ChatHistory 
+            messages={messages}
+            messagesEndRef={messagesEndRef}
+          />
         </Card>
+
+        <ChatInput 
+          isListening={isListening}
+          speaking={speaking}
+          isLoading={isLoading}
+          textInput={textInput}
+          transcript={transcript}
+          setTextInput={setTextInput}
+          startListening={startListening}
+          stopListening={stopListening}
+          sendMessage={sendMessage}
+          handleKeyPress={handleKeyPress}
+        />
 
         <AIVoiceInput
           onStart={startListening}
-          onStop={() => stopListening()}
+          onStop={stopListening}
           className="shrink-0"
         />
-
-        <div className="mt-8 flex items-center gap-4">
-          <div className="flex-1 flex items-center text-var-black gap-4">
-            <Input
-              ref={inputRef}
-              value={textInput}
-              onChange={(e) => setTextInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Type a message..."
-              disabled={isLoading}
-            />
-            <Button
-              onClick={() => sendMessage(textInput || transcript)}
-              disabled={(!textInput && !transcript) || speaking || isLoading}
-              size="icon"
-            >
-              {isLoading ? (
-                <Loader2 className="h-6 w-6 animate-spin" />
-              ) : (
-                <Send size={24} />
-              )}
-            </Button>
-          </div>
-        </div>
 
         <VoiceSettingsDialog
           open={showSettings}
@@ -391,4 +304,4 @@ const VoiceChat = () => {
   );
 };
 
-export default VoiceChat;
+export default VoiceChat
