@@ -24,7 +24,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
         <CardTitle>Chat History</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="h-96 overflow-y-auto py-2 px-6 space-y-4">
+        <div className="h-80 overflow-y-auto py-2 px-6 space-y-4">
           {messages.map((message) => (
             <div
               key={message.id}
