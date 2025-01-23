@@ -21,4 +21,5 @@ jobs:
       - name: Build
         env:
           VITE_OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ GOOGLE_APPLICATION_CREDENTIALS }}
         run: npm run build
