@@ -1,4 +1,3 @@
-// VoiceSettingsDialog.tsx
 import React from 'react';
 import {
   AlertDialog,
@@ -19,9 +18,6 @@ interface VoiceSettingsDialogProps {
   onOpenChange: (open: boolean) => void;
   voiceSettings: VoiceSettings;
   setVoiceSettings: React.Dispatch<React.SetStateAction<VoiceSettings>>;
-  availableVoices: SpeechSynthesisVoice[];
-  selectedVoice: SpeechSynthesisVoice | null;
-  setSelectedVoice: React.Dispatch<React.SetStateAction<SpeechSynthesisVoice | null>>;
   isListening: boolean;
   startListening: () => void;
   stopListening: () => void;
@@ -32,9 +28,6 @@ const VoiceSettingsDialog: React.FC<VoiceSettingsDialogProps> = ({
   onOpenChange,
   voiceSettings,
   setVoiceSettings,
-  availableVoices,
-  selectedVoice,
-  setSelectedVoice,
   isListening,
   startListening,
   stopListening,
@@ -58,24 +51,6 @@ const VoiceSettingsDialog: React.FC<VoiceSettingsDialogProps> = ({
         </AlertDialogHeader>
 
         <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <label className="text-var-black text-sm font-medium">Voice</label>
-            <select
-              className="w-full p-2 border rounded"
-              value={selectedVoice?.name}
-              onChange={(e) => {
-                const voice = availableVoices.find((v) => v.name === e.target.value);
-                if (voice) setSelectedVoice(voice);
-              }}
-            >
-              {availableVoices.map((voice) => (
-                <option key={voice.name} value={voice.name}>
-                  {voice.name} ({voice.lang})
-                </option>
-              ))}
-            </select>
-          </div>
-
           <div className="space-y-2">
             <label className="text-var-black text-sm font-medium">Pitch</label>
             <Slider

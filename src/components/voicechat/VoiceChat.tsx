@@ -9,8 +9,8 @@ import { AIVoiceInput } from '/workspaces/Language-Voice-Chat/src/components/ui/
 import ChatHeader from './ChatHeader';
 import ChatHistory from './ChatHistory';
 import ChatInput from './ChatInput';
-import speech from '@google-cloud/speech';
-import textToSpeech from '@google-cloud/text-to-speech';
+import { SpeechClient } from '@google-cloud/speech';
+import { TextToSpeechClient } from '@google-cloud/text-to-speech';
 
 interface Message {
   id: string;
@@ -48,14 +48,26 @@ const VoiceChat = () => {
 
   const audioContext = useRef<AudioContext>();
   const mediaRecorder = useRef<MediaRecorder>();
-  const speechClient = useRef<speech.SpeechClient>();
-  const ttsClient = useRef<textToSpeech.TextToSpeechClient>();
+  const speechClient = useRef<SpeechClient>();
+  const ttsClient = useRef<TextToSpeechClient>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
   useEffect(() => {
-    speechClient.current = new speech.SpeechClient();
-    ttsClient.current = new textToSpeech.TextToSpeechClient();
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
+
+  useEffect(() => {
+    speechClient.current = new SpeechClient();
+    ttsClient.current = new TextToSpeechClient();
     audioContext.current = new AudioContext();
+
+    return () => {
+      audioContext.current?.close();
+    };
   }, []);
 
   const startListening = useCallback(async () => {
@@ -149,8 +161,73 @@ const VoiceChat = () => {
     }
   }, [speaking, voiceSettings]);
 
-  // Rest of the component remains the same...
-  
+  const sendMessage = async (content: string) => {
+    if (!content.trim()) return;
+
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content: content,
+      timestamp: new Date()
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4',
+          messages: [...messages, userMessage].map(({ role, content }) => ({
+            role,
+            content
+          })),
+          temperature: 0.7,
+          max_tokens: 150
+        })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error?.message || 'API request failed');
+      }
+
+      const data = await response.json();
+      const assistantMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: data.choices[0].message.content,
+        timestamp: new Date()
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      if (voiceSettings.autoPlay) {
+        speakMessage(assistantMessage.content);
+      }
+    } catch (err) {
+      console.error('Error sending message:', err);
+      setError(err instanceof Error ? err.message : 'Failed to send message');
+    } finally {
+      setIsLoading(false);
+      setTranscript('');
+      setTextInput('');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey && !isLoading) {
+      e.preventDefault();
+      sendMessage(textInput || transcript);
+    }
+  };
+
   return (
     <div className="p-4 max-w-3xl mx-auto">
       <div className="rounded-lg shadow-lg p-8 bg-muted">
